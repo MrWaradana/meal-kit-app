@@ -15,8 +15,17 @@ import {
   Stack,
   TextInput,
   PasswordInput,
+  Select,
+  Text,
+  Group,
 } from "@mantine/core";
-import { IconSend, IconEdit, IconTrash, IconPlus } from "@tabler/icons-react";
+import {
+  IconSend,
+  IconEdit,
+  IconTrash,
+  IconPlus,
+  IconAlertTriangle,
+} from "@tabler/icons-react";
 import { getToken } from "../lib/token";
 import { Notification } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
@@ -34,6 +43,8 @@ type Person = {
 const UsersTable = ({ data, fetchUser }: any) => {
   const [userToken, setUserToken] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<any>(null);
   const [newUser, setNewUser] = useState<Partial<any>>({
     email: "",
     password: "",
@@ -51,14 +62,31 @@ const UsersTable = ({ data, fetchUser }: any) => {
       {
         accessorKey: "email",
         header: "EMAIL",
+        mantineEditTextInputProps: {
+          type: "email",
+          required: true,
+          description:
+            "Must be a valid email address. Will be converted to lowercase.",
+        },
       },
       {
         accessorKey: "name",
         header: "NAME",
+        mantineEditTextInputProps: {
+          required: true,
+          description:
+            "Must be between 2 and 50 characters. Can only contain letters and spaces.",
+        },
       },
       {
         accessorKey: "role",
         header: "ROLE",
+        editVariant: "select",
+        mantineEditSelectProps: {
+          data: ["ADMIN", "USER"],
+          required: true,
+          description: "Select a user role (USER or ADMIN)",
+        },
       },
     ],
     []
@@ -209,6 +237,19 @@ const UsersTable = ({ data, fetchUser }: any) => {
     }
   };
 
+  const handleDeleteClick = (row: any) => {
+    setUserToDelete(row.original);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (userToDelete) {
+      await handleDelete(userToDelete);
+      setIsDeleteModalOpen(false);
+      setUserToDelete(null);
+    }
+  };
+
   const table = useMantineReactTable({
     columns,
     data,
@@ -234,7 +275,7 @@ const UsersTable = ({ data, fetchUser }: any) => {
         >
           <IconEdit />
         </ActionIcon>
-        <ActionIcon color="red" onClick={() => handleDelete(row)}>
+        <ActionIcon color="red" onClick={() => handleDeleteClick(row)}>
           <IconTrash />
         </ActionIcon>
       </Box>
@@ -265,32 +306,89 @@ const UsersTable = ({ data, fetchUser }: any) => {
             value={newUser.email}
             onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
             required
+            description="Must be a valid email address. Will be converted to lowercase."
           />
           <PasswordInput
             label="Password"
             placeholder="Enter Password"
-            description={`Password must be between 8 and 100 characters and Password must include one lowercase letter, one uppercase letter, one number, and one special character`}
+            description={[
+              "• Must be between 8 and 100 characters",
+              "• Must include at least one lowercase letter",
+              "• Must include at least one uppercase letter",
+              "• Must include at least one number",
+              "• Must include at least one special character",
+            ].join("\n")}
             onChange={(e) =>
               setNewUser({ ...newUser, password: e.target.value })
             }
+            required
           />
           <TextInput
             label="Name"
             placeholder="Enter name"
             value={newUser.name}
             onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+            description="Must be between 2 and 50 characters. Can only contain letters and spaces."
             required
           />
-          <TextInput
+          <Select
             label="Role"
-            placeholder="Enter role"
+            placeholder="Pick role"
+            data={["USER", "ADMIN"]}
             value={newUser.role}
-            onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+            onChange={(role) => setNewUser({ ...newUser, role })}
+            description="Select a user role (USER or ADMIN)"
             required
           />
           <Button onClick={handleCreateUser} fullWidth>
             Create User
           </Button>
+        </Stack>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        opened={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setUserToDelete(null);
+        }}
+        title="Delete User Confirmation"
+        size="md"
+      >
+        <Stack gap="md">
+          <Group>
+            <IconAlertTriangle size={32} color="red" />
+            <div>
+              <Text size="lg" fw={500}>
+                Are you sure you want to delete this user?
+              </Text>
+              {userToDelete && (
+                <Text size="sm" c="dimmed">
+                  User: {userToDelete.name} ({userToDelete.email})
+                </Text>
+              )}
+            </div>
+          </Group>
+
+          <Text c="red" size="sm">
+            This action cannot be undone.
+          </Text>
+
+          <Group justify="flex-end" mt="md">
+            <Button
+              variant="light"
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setUserToDelete(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button color="red" onClick={handleDeleteConfirm}>
+              Delete User
+            </Button>
+          </Group>
         </Stack>
       </Modal>
     </>

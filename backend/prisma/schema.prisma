@@ -3,14 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-model mahasiswa {
-  nrp      Int     @id
-  mhs_name String? @db.VarChar(30)
-  mhs_addr String? @db.VarChar(80)
 }
 
 model User {
@@ -18,7 +12,7 @@ model User {
   email    String   @unique
   name     String?
   role     Role     @default(USER)
-  password String // Add this line
+  password String      
   posts    Post[]
   profile  Profile?
 }

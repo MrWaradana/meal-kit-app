@@ -1,33 +1,37 @@
 "use client";
 
-import {
-  Button,
-  Checkbox,
-  Group,
-  PasswordInput,
-  TextInput,
-  Notification,
-} from "@mantine/core";
+import { Button, Group, PasswordInput, TextInput, Select } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { notifications } from "@mantine/notifications";
-import Cookies from "js-cookie";
-import { setToken } from "../lib/token";
 
-export default function Login() {
+export default function Register() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+
   const form = useForm({
     mode: "uncontrolled",
     initialValues: {
+      name: "",
       email: "",
       password: "",
+      role: "user", // Default role
     },
 
     validate: {
+      name: (value) =>
+        value.length < 2 ? "Name must have at least 2 characters" : null,
       email: (value) => (/^\S+@\S+$/.test(value) ? null : "Invalid email"),
-      password: (value) => (value.length < 1 ? "Password is required" : null),
+      password: (value) => {
+        if (value.length < 6) return "Password must be at least 6 characters";
+        if (!/\d/.test(value))
+          return "Password must contain at least one number";
+        if (!/[a-zA-Z]/.test(value))
+          return "Password must contain at least one letter";
+        return null;
+      },
+      role: (value) => (!value ? "Please select a role" : null),
     },
   });
 
@@ -36,7 +40,7 @@ export default function Login() {
 
     try {
       const url = "http://localhost:3001";
-      const response = await fetch(`${url}/api/v1/auth/login`, {
+      const response = await fetch(`${url}/api/v1/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -47,24 +51,20 @@ export default function Login() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Login failed");
+        throw new Error(data.message || "Registration failed");
       }
-
-      // Store token in cookie (more secure than localStorage)
-      // Cookies.set("token", data.token);
-      setToken(data.accessToken, "token");
-      setToken(data.role, "role");
 
       notifications.show({
         title: "Success",
-        message: `Successfully logged in! `,
+        message: "Account created successfully!",
         color: "green",
         position: "top-center",
       });
 
+      // Redirect to login page after successful registration
       setTimeout(() => {
-        router.push("/");
-      }, 1000);
+        router.push("/login");
+      }, 1500);
     } catch (error: any) {
       notifications.show({
         title: "Error",
@@ -87,30 +87,52 @@ export default function Login() {
           Your Gateway to Gourmet Home Cooking
         </p>
       </div>
+
       <form
         onSubmit={form.onSubmit(handleSubmit)}
-        className={`bg-white/30 backdrop-blur-2xl w-full max-w-lg px-6 py-12 rounded-xl flex flex-col gap-4`}
+        className="flex flex-col w-full max-w-lg gap-4 px-6 py-12 bg-white/30 backdrop-blur-2xl rounded-xl"
       >
-        <h2 className="mb-4 text-3xl font-bold capitalize">Log in</h2>
+        <h2 className="mb-4 text-3xl font-bold capitalize">Register</h2>
+
+        <TextInput
+          withAsterisk
+          label="Full Name"
+          placeholder="John Doe"
+          {...form.getInputProps("name")}
+        />
+
         <TextInput
           withAsterisk
           label="Email"
           placeholder="your@email.com"
-          key={form.key("email")}
           {...form.getInputProps("email")}
         />
+
         <PasswordInput
+          withAsterisk
           label="Password"
-          placeholder="Password..."
-          key={form.key("password")}
+          placeholder="Create a strong password"
           {...form.getInputProps("password")}
         />
-        <Group justify="space-between" mt="md">
-          {" "}
-          <Button variant="subtle" onClick={() => router.push("/register")}>
-            Doesn`t have an account? Register
+
+        <Select
+          withAsterisk
+          label="Role"
+          placeholder="Select your role"
+          data={[
+            { value: "USER", label: "User" },
+            { value: "ADMIN", label: "Admin" },
+          ]}
+          {...form.getInputProps("role")}
+        />
+
+        <Group justify="space-between" mt="xl">
+          <Button variant="subtle" onClick={() => router.push("/login")}>
+            Already have an account? Login
           </Button>
-          <Button type="submit">Submit</Button>
+          <Button type="submit" loading={isLoading}>
+            Register
+          </Button>
         </Group>
       </form>
     </section>

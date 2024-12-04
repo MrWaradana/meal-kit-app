@@ -1,4 +1,6 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcrypt"
+
 
 const prisma = new PrismaClient()
 
@@ -68,13 +70,32 @@ const getUserByEmail = async (email) => {
     });
 };
 
-const createUser = async (data) => {
+const registerUser = async (data) => {
     return await prisma.user.create({
         data: {
             email: data.email,
             name: data.name,
             role: data.role,
             password: data.password,
+        },
+        select: {
+            id: true,
+            email: true,
+            name: true,
+            role: true,
+            // password is explicitly excluded
+        }
+    });
+};
+
+const createUser = async (data) => {
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+    return await prisma.user.create({
+        data: {
+            email: data.email,
+            name: data.name,
+            role: data.role,
+            password: hashedPassword,
         },
         select: {
             id: true,
@@ -124,5 +145,6 @@ export {
     getUserById,
     createUser,
     updateUserById,
-    deleteUserById
+    deleteUserById,
+    registerUser
 }

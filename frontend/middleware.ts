@@ -4,6 +4,7 @@ import { jwtVerify } from "jose";
 
 // Define protected routes that require authentication
 const protectedRoutes = [
+  "/",
   "/admin",
   "/profile",
   "/settings",
@@ -14,13 +15,17 @@ const protectedRoutes = [
 const publicRoutes = [
   "/login",
   "/register",
-  "/forgot-password",
+  "/img/*",
   // Add other public routes here
 ];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Check if the path starts with /img/
+  if (pathname.startsWith("/img/")) {
+    return NextResponse.next();
+  }
   // Allow public routes without authentication
   if (publicRoutes.includes(pathname)) {
     // If user is already logged in and tries to access login/register pages,
@@ -33,7 +38,7 @@ export async function middleware(request: NextRequest) {
         await jwtVerify(token, secret);
 
         // If token is valid and user tries to access login page, redirect to dashboard
-        return NextResponse.redirect(new URL("/admin", request.url));
+        return NextResponse.redirect(new URL("/", request.url));
       } catch (error) {
         // If token is invalid, remove it
         const response = NextResponse.next();

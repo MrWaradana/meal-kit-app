@@ -1,4 +1,4 @@
-import { getAllUsers, getUserByEmail, createUser } from "../models/users.mjs"
+import { getAllUsers, getUserByEmail, createUser, registerUser } from "../models/users.mjs"
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 
@@ -7,9 +7,7 @@ const register = async (req, res) => {
         const { name, email, password, role } = req.body;
 
         if (!email || !password) {
-            return res
-                .status(400)
-                .json({ message: "Email and password are required" });
+            return res.status(400).json({ message: "Email and password are required" });
         }
 
         const user = await getUserByEmail(email);
@@ -18,10 +16,16 @@ const register = async (req, res) => {
             return res.status(400).json({ message: "Email is already registered" });
         }
 
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+        // Simplify the hashing process - just use hash directly
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-        await createUser({
+        // Verify the hash immediately
+        const verifyHash = await bcrypt.compare(password, hashedPassword);
+        console.log('Password:', password);
+        console.log('New hash:', hashedPassword);
+        console.log('Verification check:', verifyHash);
+
+        await registerUser({
             name,
             email,
             role,
@@ -29,7 +33,8 @@ const register = async (req, res) => {
         });
 
         return res.status(201).json({
-            message: "User created", data: {
+            message: "User created",
+            data: {
                 name,
                 email,
                 role,
@@ -57,9 +62,11 @@ const login = async (req, res) => {
         }
 
         const match = await bcrypt.compare(password, user.password);
+
         if (!match) {
             return res.status(400).json({ message: "Invalid email or password" });
         }
+
         const accessToken = jwt.sign(
             {
                 user: user.id,
@@ -83,8 +90,8 @@ const login = async (req, res) => {
             accessToken,
             userId: user.id,
             name: user.name,
-            email: user.email
-
+            email: user.email,
+            role: user.role
         });
     } catch (error) {
         return res.status(500).json({ message: error.message });
@@ -98,7 +105,7 @@ const logout = async (req, res) => {
         if (!token) {
             return res.status(204).json({ message: "Invalid token" });
         }
-        res.clearCookie("accessToken");
+        res.clearCookie("token");
         return res.status(200).json({ message: "Logout successful" });
     } catch (error) {
         return res.status(500).json({ message: error.message });

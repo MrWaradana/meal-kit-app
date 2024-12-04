@@ -1,14 +1,14 @@
 import express from "express";
-import { register, login, logout } from "../controllers/authController.mjs";
+import { register, login, logout } from "../Authentication/authController.mjs";
 import {
     create,
     index,
     update,
     destroy,
-} from "../controllers/userMangamentController.mjs";
-import { verifyToken } from "../middlewares/verifyToken.mjs";
-import { verifyAdmin } from "../middlewares/verifyAdmin.mjs";
-import { createUserValidator, updateUserValidator } from "../middlewares/userValidator.mjs";
+} from "../UserManagement/userMangamentController.mjs";
+import { verifyToken } from "../utils/verifyToken.mjs";
+import { verifyAdmin } from "../utils/verifyAdmin.mjs";
+import { createUserValidator, updateUserValidator } from "../utils/userValidator.mjs";
 import { validationResult } from "express-validator";
 
 const router = express.Router();
@@ -29,8 +29,8 @@ const validateRequest = (req, res, next) => {
 */
 
 // Health Check
-router.get("/", (req, res) => {
-    res.status(200).json({ message: "User Management App" });
+router.get("/", (req, res) => {                       
+    res.status(200).json({ message: "User Management for Meal Kit Store App" });
 });
 
 // Auth Routes
