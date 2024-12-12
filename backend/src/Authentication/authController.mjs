@@ -1,4 +1,4 @@
-import { getAllUsers, getUserByEmail, createUser, registerUser } from "../models/users.mjs"
+import { getUserByEmail, registerUser } from "../models/users.mjs"
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 
@@ -19,11 +19,11 @@ const register = async (req, res) => {
         // Simplify the hashing process - just use hash directly
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Verify the hash immediately
-        const verifyHash = await bcrypt.compare(password, hashedPassword);
-        console.log('Password:', password);
-        console.log('New hash:', hashedPassword);
-        console.log('Verification check:', verifyHash);
+        //? Verify the hash immediately
+        // const verifyHash = await bcrypt.compare(password, hashedPassword);
+        // console.log('Password:', password);
+        // console.log('New hash:', hashedPassword);
+        // console.log('Verification check:', verifyHash);
 
         await registerUser({
             name,

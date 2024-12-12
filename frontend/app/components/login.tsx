@@ -14,7 +14,7 @@ import { useState } from "react";
 import { notifications } from "@mantine/notifications";
 import Cookies from "js-cookie";
 
-export default function Login({cookie}: any) {
+export default function Login({ cookie }: any) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const form = useForm({
@@ -46,7 +46,12 @@ export default function Login({cookie}: any) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Login failed");
+        notifications.show({
+          title: "Error",
+          message: `Failed to login, Error ${response.status} ${response.statusText}`,
+          color: "red",
+        });
+        return;
       }
 
       // Store token in cookie (more secure than localStorage)

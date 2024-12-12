@@ -29,6 +29,7 @@ import {
 import { getToken } from "../lib/token";
 import { Notification } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
+import { Form } from "@mantine/form";
 
 type Person = {
   name: {
@@ -93,13 +94,15 @@ const UsersTable = ({ data, fetchUser }: any) => {
   );
 
   const handleCreateUser = async () => {
+    const url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
     try {
       getToken().then((result: any) => {
         setUserToken(result);
       });
 
       if (userToken) {
-        const response = await fetch(`http://localhost:3001/api/v1/user`, {
+        const response = await fetch(`${url}/user`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -109,10 +112,17 @@ const UsersTable = ({ data, fetchUser }: any) => {
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          notifications.show({
+            title: "Error",
+            message: "Failed to create user",
+            position: "top-center",
+            color: "red",
+          });
+          return;
         }
 
         const createdUser = await response.json();
+
 
         // Close modal and reset form
         setIsCreateModalOpen(false);
@@ -128,7 +138,7 @@ const UsersTable = ({ data, fetchUser }: any) => {
           position: "top-center",
           color: "green",
         });
-        fetchUser();
+        // fetchUser();
         return createdUser;
       }
       return null;
@@ -140,11 +150,13 @@ const UsersTable = ({ data, fetchUser }: any) => {
         position: "top-center",
         color: "red",
       });
-      throw new Error("Failed to create user");
+      // throw new Error("Failed to create user");
     }
   };
 
   const handleSaveUpdate = async ({ row, values }: any) => {
+    const url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
     try {
       const userId = row.original.id;
       getToken().then((result: any) => {
@@ -152,20 +164,23 @@ const UsersTable = ({ data, fetchUser }: any) => {
       });
 
       if (userToken) {
-        const response = await fetch(
-          `http://localhost:3001/api/v1/user/${userId}`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${userToken}`,
-            },
-            body: JSON.stringify(values),
-          }
-        );
+        const response = await fetch(`${url}/user/${userId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${userToken}`,
+          },
+          body: JSON.stringify(values),
+        });
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          notifications.show({
+            title: "Error",
+            message: `Failed to update user, ${response.statusText}`,
+            position: "top-center",
+            color: "red",
+          });
+          return;
         }
 
         const updatedUser = await response.json();
@@ -190,31 +205,35 @@ const UsersTable = ({ data, fetchUser }: any) => {
         position: "top-center",
         color: "red",
       });
-      throw new Error("Failed to update user");
+      // throw new Error("Failed to update user");
     }
   };
 
   const handleDelete = async (row: any) => {
+    const url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
     try {
-      const userId = row.original.id;
+      const userId = row.id;
       getToken().then((result: any) => {
         setUserToken(result);
       });
 
       if (userToken) {
-        const response = await fetch(
-          `http://localhost:3001/api/v1/user/${userId}`,
-          {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${userToken}`,
-            },
-          }
-        );
+        const response = await fetch(`${url}/user/${userId}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${userToken}`,
+          },
+        });
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          notifications.show({
+            title: "Error",
+            message: `Failed to delete user, Error ${response.status}`,
+            position: "top-center",
+            color: "red",
+          });
+          return;
         }
 
         notifications.show({
@@ -233,7 +252,7 @@ const UsersTable = ({ data, fetchUser }: any) => {
         position: "top-center",
         color: "red",
       });
-      throw new Error("Failed to delete user");
+      // throw new Error("Failed to delete user");
     }
   };
 
@@ -299,51 +318,55 @@ const UsersTable = ({ data, fetchUser }: any) => {
         title="Create New User"
         size="md"
       >
-        <Stack gap={`md`}>
-          <TextInput
-            label="Email"
-            placeholder="Enter email"
-            value={newUser.email}
-            onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-            required
-            description="Must be a valid email address. Will be converted to lowercase."
-          />
-          <PasswordInput
-            label="Password"
-            placeholder="Enter Password"
-            description={[
-              "• Must be between 8 and 100 characters",
-              "• Must include at least one lowercase letter",
-              "• Must include at least one uppercase letter",
-              "• Must include at least one number",
-              "• Must include at least one special character",
-            ].join("\n")}
-            onChange={(e) =>
-              setNewUser({ ...newUser, password: e.target.value })
-            }
-            required
-          />
-          <TextInput
-            label="Name"
-            placeholder="Enter name"
-            value={newUser.name}
-            onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-            description="Must be between 2 and 50 characters. Can only contain letters and spaces."
-            required
-          />
-          <Select
-            label="Role"
-            placeholder="Pick role"
-            data={["USER", "ADMIN"]}
-            value={newUser.role}
-            onChange={(role) => setNewUser({ ...newUser, role })}
-            description="Select a user role (USER or ADMIN)"
-            required
-          />
-          <Button onClick={handleCreateUser} fullWidth>
-            Create User
-          </Button>
-        </Stack>
+        <form action={handleCreateUser}>
+          <Stack gap={`md`}>
+            <TextInput
+              label="Email"
+              placeholder="Enter email"
+              value={newUser.email}
+              onChange={(e) =>
+                setNewUser({ ...newUser, email: e.target.value })
+              }
+              required
+              description="Must be a valid email address. Will be converted to lowercase."
+            />
+            <PasswordInput
+              label="Password"
+              placeholder="Enter Password"
+              description={[
+                "• Must be between 8 and 100 characters",
+                "• Must include at least one lowercase letter",
+                "• Must include at least one uppercase letter",
+                "• Must include at least one number",
+                "• Must include at least one special character",
+              ].join("\n")}
+              onChange={(e) =>
+                setNewUser({ ...newUser, password: e.target.value })
+              }
+              required
+            />
+            <TextInput
+              label="Name"
+              placeholder="Enter name"
+              value={newUser.name}
+              onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+              description="Must be between 2 and 50 characters. Can only contain letters and spaces."
+              required
+            />
+            <Select
+              label="Role"
+              placeholder="Pick role"
+              data={["USER", "ADMIN"]}
+              value={newUser.role}
+              onChange={(role) => setNewUser({ ...newUser, role })}
+              description="Select a user role (USER or ADMIN)"
+              required
+            />
+            <Button type="submit" fullWidth>
+              Create User
+            </Button>
+          </Stack>
+        </form>
       </Modal>
 
       {/* Delete Confirmation Modal */}

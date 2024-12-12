@@ -44,7 +44,8 @@ export default function Admin() {
 
   async function fetchUser() {
     setLoading(true);
-    let res = await fetch(`http://localhost:3001/api/v1/users?sortOrder=asc`, {
+    const url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    let res = await fetch(`${url}/users?sortOrder=asc`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${userToken}`,

@@ -39,8 +39,8 @@ export default function Register() {
     setIsLoading(true);
 
     try {
-      const url = "http://localhost:3001";
-      const response = await fetch(`${url}/api/v1/auth/register`, {
+      const url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      const response = await fetch(`${url}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -50,9 +50,9 @@ export default function Register() {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || "Registration failed");
-      }
+      // if (!response.ok) {
+      //   throw new Error(data.message || "Registration failed");
+      // }
 
       notifications.show({
         title: "Success",

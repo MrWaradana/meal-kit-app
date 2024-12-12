@@ -51,7 +51,7 @@ const update = async (req, res) => {
     const { email, name } = req.body
     try {
         const userId = parseInt(req.params.userId);
-        const exist = await getUserByEmail(email)
+        const exist = await getUserById(userId)
 
 
         if (!email

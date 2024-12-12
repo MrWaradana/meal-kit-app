@@ -38,7 +38,7 @@ export default function HomePage() {
   const handleSignOut = () => {
     removeToken();
     setIsSignOutModalOpen(false);
-    router.push('/login');
+    router.push("/login");
   };
 
   return (
@@ -72,7 +72,10 @@ export default function HomePage() {
         {/* Action Buttons */}
         <div className="flex flex-col items-center justify-center w-full max-w-xs gap-4">
           {role === "ADMIN" && (
-            <Link href="/admin" className="w-full">
+            <Link
+              href="/admin"
+              className="flex items-center justify-center w-full"
+            >
               <Button
                 size="lg"
                 className="w-full py-3 font-semibold text-white bg-blue-600 hover:bg-blue-700"

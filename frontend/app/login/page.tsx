@@ -35,8 +35,8 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const url = "http://localhost:3001";
-      const response = await fetch(`${url}/api/v1/auth/login`, {
+      const url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      const response = await fetch(`${url}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -46,9 +46,9 @@ export default function Login() {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || "Login failed");
-      }
+      // if (!response.ok) {
+      //   throw new Error(data.message || "Login failed");
+      // }
 
       // Store token in cookie (more secure than localStorage)
       // Cookies.set("token", data.token);
@@ -64,7 +64,7 @@ export default function Login() {
 
       setTimeout(() => {
         router.push("/");
-      }, 1000);
+      }, 10000);
     } catch (error: any) {
       notifications.show({
         title: "Error",
