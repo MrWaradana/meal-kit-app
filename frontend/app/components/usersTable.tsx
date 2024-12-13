@@ -123,7 +123,6 @@ const UsersTable = ({ data, fetchUser }: any) => {
 
         const createdUser = await response.json();
 
-
         // Close modal and reset form
         setIsCreateModalOpen(false);
         setNewUser({
@@ -138,7 +137,7 @@ const UsersTable = ({ data, fetchUser }: any) => {
           position: "top-center",
           color: "green",
         });
-        // fetchUser();
+        fetchUser();
         return createdUser;
       }
       return null;
@@ -198,14 +197,12 @@ const UsersTable = ({ data, fetchUser }: any) => {
       }
       return null;
     } catch (error) {
-      console.error("Error updating user:", error);
       notifications.show({
         title: "Error",
         message: "Failed to update user",
         position: "top-center",
         color: "red",
       });
-      // throw new Error("Failed to update user");
     }
   };
 

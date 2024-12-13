@@ -46,9 +46,15 @@ export default function Login() {
 
       const data = await response.json();
 
-      // if (!response.ok) {
-      //   throw new Error(data.message || "Login failed");
-      // }
+      if (!response.ok) {
+        notifications.show({
+          title: "Error",
+          message: `Failed to login, invalid credentials!`,
+          color: "red",
+          position: "top-center",
+        });
+        return;
+      }
 
       // Store token in cookie (more secure than localStorage)
       // Cookies.set("token", data.token);
